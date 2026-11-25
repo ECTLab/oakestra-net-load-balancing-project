@@ -45,7 +45,7 @@ Suggested cluster methods are `on_report`, `compute_local`, `on_root_decision`, 
 
 The Go selector's `Pick` result should explicitly indicate whether selection succeeded. There is no need to reproduce an older fork's index-only interface limitation. This checkout has no algorithm registry or fixed algorithm-count test to update.
 
-Add future implementation tests beside their classes. Proposed test files are not production files. The current documentation directory remains exactly its four existing documents.
+Add future implementation tests beside their classes. Proposed test files are not production files. Keep the four existing English Markdown guides. The requested `latex-reference` directory is a reference snapshot, not an additional implementation guide.
 
 ## Cluster-manager edits
 
@@ -99,7 +99,9 @@ The new `nodes/<worker>/halo/telemetry` message contains the shared envelope and
 | Both: `service_key` | Complete unique service/job identity, not only a short service name |
 | Source: `source_key` | Worker, or worker plus calling instance; not a TCP port |
 | Source: `attempts_started`, `open_start`, `open_end` | Demand and boundary counts of open attempts |
-| Source: `unrouted_failed` | Failed completion without a known destination; contributes only to whole-source accounting |
+| Source: `completed_succeeded`, `completed_failed` | Authoritative counts of all terminal outcomes, even when route identity is unknown |
+| Source: `duration_sum_seconds`, `duration_count` | Whole-source completed-duration sum/count; separate from the optional per-path breakdown |
+| Source: `unrouted_failed` | Diagnostic subset of `completed_failed` for failure before destination selection; never added again |
 | Source: `outcomes[]` | Results identified by `cluster_id`, `instance_number`, `host_id`, and `deployment_revision` |
 | Outcome: `succeeded`, `failed` | Completed successful/failed attempts on that path; failure includes configured timeout/application errors |
 | Outcome: `duration_sum_seconds`, `duration_count` | Completed-duration sum/count for monitoring, not a substitute for ping |
@@ -112,11 +114,21 @@ The new `nodes/<worker>/halo/telemetry` message contains the shared envelope and
 
 Counts are nonnegative and times are seconds. `processed` includes unsuccessful processing that actually executed, but excludes pre-service rejection. An attempt completing in a later window is counted in that completion window. Started attempts are not the failure-ratio denominator.
 
-Failures before a destination is selected still count in demand/outstanding-attempt accounting, but not in a fictitious instance's failures. Account for them through `unrouted_failed`; `outcomes[]` contains only known destinations.
+Failures before a destination is selected still count in demand/outstanding-attempt accounting, but not in a fictitious instance's failures. `completed_succeeded` and `completed_failed` cover every terminal attempt. `unrouted_failed` is a diagnostic subset of `completed_failed`, not an additional completion. `outcomes[]` contains only known destinations.
 
 The destination identity must represent the instance actually chosen after routing. A service VIP, DNS name, or user IP does not establish it. The observation provider must correlate the chosen route and attempt. Without that correlation, do not manufacture a new destination failure ratio; retain unavailable/unobserved status.
 
 Opaque traffic cannot supply missing request counters automatically. A destination without valid processing counts cannot receive a new capacity estimate. Optional queue correction is different from a missing mandatory capacity input.
+
+### Source totals when route attribution is incomplete
+
+Use `open_end = open_start + attempts_started - completed_succeeded - completed_failed`. Do not substitute the sum of `outcomes[]` when its route coverage is incomplete. Require `sum(outcome.succeeded) <= completed_succeeded` and `sum(outcome.failed) + unrouted_failed <= completed_failed`.
+
+With complete path coverage, both inequalities become equalities. The differences otherwise represent completed attempts without known route attribution. They do not become failures of a fictitious destination. `unrouted_failed` covers attempts that failed before selection; failed attempts with a selected but unobserved destination remain in the total and its unattributed difference.
+
+Mark `path_outcomes` unavailable/invalid when the provider cannot establish complete outcome-to-route attribution. The cluster must not construct a fresh per-destination failure ratio from a biased partial breakdown. This does not erase valid source demand or whole-source completion counts.
+
+For fully valid duration coverage, source `duration_count` equals `completed_succeeded + completed_failed`; divide the source sum by this count for the whole-source mean. A zero count produces no new mean. Duration validity is independent of whether those completions have destination attribution. The base cost still uses ping, not this response-duration mean.
 
 ## Probe input
 
@@ -150,10 +162,11 @@ Read the policy attached to the address actually requested. A HALO policy on an 
 
 | Policy field | Meaning |
 |---|---|
+| `schema_version` | Wire-contract version; `1` for the examples below |
 | `service_key`, `producer_id`, `producer_epoch`, `sequence` | Source manager's final-policy identity/version |
 | `valid_until`, `local_plan_ref`, `root_decision_ref` | Validity and calculation references; root reference may be null for local-only policy |
 | `rows[]` | All cluster rows or only that worker's rows; worker-specific delivery is smaller |
-| Row: `source_key`, `destinations[]` | Independent WRR key and its destinations |
+| Row: `source_key`, `state`, `destinations[]` | Independent WRR key, `ready`/`unavailable` state, and its destinations |
 | Destination | `cluster_id`, `instance_number`, `host_id`, `deployment_revision`, and `weight` |
 
 Weights are finite, nonnegative fractions. Each active row sums to one within an explicit tolerance. Go can use `float64` weights directly; integer percentages are not required. If integer execution is later needed, recheck zeros, sums, and rate limits after quantization.
@@ -191,12 +204,232 @@ Manager classes retain the existing Dockerfile command. Build/deploy both manage
 
 Install this checkout's NetManager binary. Image selection, root port, and NodeEngine publication belong to the [core low-level plan](https://github.com/ECTLab/oakestra-load-balancing-project/blob/lb_develop/load-balancing-docs/skeleton-implementation-low-level.md). Placement scheduling and runtime allocation code do not belong in this repository.
 
+## Component call contracts
+
+These method names are proposed interfaces, not existing code. Inputs are immutable snapshots. The numerical solver may be supplied by the implementer, but its result must satisfy the equations and optimality checks in [algorithm.md](algorithm.md).
+
+| Component call | Input | Output and side effect boundary |
+|---|---|---|
+| Cluster `on_report` | Message kind, authenticated/registered producer identity, decoded window, receive time | Validate and replace that producer's latest window; mark affected services dirty. Never add a retransmitted delta twice. |
+| Cluster `compute_local` | Service, eligible local instances, complete fresh source/path/container snapshot, fixed source order, settings | `LocalPlan`: source demand, `eta`, local rates/weights, per-instance planned and spare rates, overflow, input references, and a new `local_plan_ref`. No network calls. |
+| Cluster `on_root_decision` | Complete root decision and receive time | Retain only an accepted version, then schedule composition. Do not solve local rows again merely because the root replied. |
+| Cluster `build_policy` | A local plan, optional compatible root decision, current time | Complete final policy or explicit unavailable rows. Perform the local-first gate and all normal/temporary branches before publication. |
+| Root `compute_shares` | Latest complete valid summaries for one service, current time | Complete `RootDecision` with mode, common cluster/instance shares, and exact summary references. No raw telemetry or local-cost solve. |
+| Edge `Install` | Complete policy and matching route snapshot | Validate once and atomically replace row state. A duplicate version is idempotent; a new installed version resets that row's WRR scores. |
+| Edge `Pick` | Service/VIP, source key, current candidates, address family, current time | Destination identity/entry plus explicit success flag. No solver, HTTP, probe, or synchronous table query. |
+
+`LocalPlan` is private cluster state, not another wire message. Keep its rates as full-precision values. Build each service plan from zero reservations, solve sources sequentially, and retain the plan's complete input references. Do not expose half-computed rows to the publisher.
+
+The shared contract identifies telemetry by message kind plus producer identity, epoch, and sequence. NodeEngine telemetry and NetManager probes are separate streams even when both use the same worker ID. They must not overwrite each other's sequence state.
+
+## Deterministic processing and failure rules
+
+| Condition | Required action |
+|---|---|
+| Known source idle in a valid window | Require an explicit record with zero starts; an omitted record is not evidence of zero demand. |
+| Mandatory source/container input missing or stale | Use a still-valid compatible snapshot if available; otherwise do not construct a normal plan from invented zero values. |
+| Queue unavailable | Omit only the residual correction and preserve its unavailable flag. |
+| Failure ratio has no new completed cohort | Apply the configured unobserved/previous-valid rule; do not divide by zero. |
+| Source has no positive local rate | Skip its local solve; never divide by `ell=0`. |
+| Solver result violates feasibility or certificate tolerance | Do not publish it. Retain a still-valid complete policy or use the defined eligible temporary/unavailable behavior. |
+| No external overflow | Root mode is `no_overflow`; the empty external-share list is intentional. |
+| Positive overflow and no receiver | Root mode is `no_receiver`; composition applies local fallback only if eligible local hosts exist. |
+| New report expires without another arrival | Treat expiry as an input-change event and recompute affected services. A deadline timer must not wait indefinitely for the next message. |
+| Installed destination disappears | Invalidate the affected decision, report/recompute through the owning manager, and do not silently renormalize foreign shares. |
+
+Use an explicit stable source ordering, such as ordinal order of the already canonical `source_key`; record it with the configuration. Use full destination identity for deterministic destination ordering and ties. These order choices are implementation settings; the thesis requires a fixed order but does not prescribe a string format.
+
+Specify separate tolerances for rate feasibility, row sums, and optimality residuals in experiment configuration. Do not treat one tolerance as a new load-balancing parameter. Comparisons, root branch selection, and any rounding must not silently authorize a material excess above normal capacity.
+
+## Version-1 wire validation
+
+The following examples and the field tables above define schema version `1`. Counts and sequences are nonnegative integers; booleans are not counts. Rates, durations, and weights are finite JSON numbers. CPU shares and measured window duration must be positive where marked valid. Reject NaN and Infinity rather than letting a language-specific JSON extension carry them.
+
+Use these per-measurement validity values: `valid`, `unavailable`, `invalid`, and `unsupported`. Source validity keys include `requests`, `path_outcomes`, and `durations`; destination keys include `cpu`, `processing`, `queue`, and `readiness`. An unavailable group may contain null fields with a `missing_reason` entry. Never evaluate a formula using a null or invalid input.
+
+`source_key` must uniquely and consistently identify the same logical origin within the owning cluster. `host_id` is a worker identity. Every instance belongs to the declared service and cluster; validate that binding against the known deployment inventory. Do not reinterpret array position or host IP as an instance ID.
+
+For HTTP summary/decision endpoints, acknowledge a new accepted message with `202` and `{"status":"accepted"}`. An identical duplicate or an older recognized version can return `200` with `duplicate` or `ignored_stale`. Return `400` for malformed schema, `409` for the same message identity with different content or an unrecognized epoch transition, and `503` while the receiver is not initialized.
+
+Message sequence orders only its own active producer epoch. Activation of a replacement epoch must be tied to the existing producer-registration/reconnect lifecycle and must retire the old epoch; do not accept an arbitrary different epoch as newer. Preserve or re-establish active-producer identity before accepting reports after manager restart. This is a transport adapter requirement, not a convexity theorem.
+
+HTTP retries reuse exactly the same message identity and body. MQTT QoS1 retransmissions are idempotent. Replacing the body, input references, or validity deadline requires a new sequence. Return from receive callbacks after enqueueing; delivery of an acknowledgement does not mean all other managers already installed the decision.
+
+### Complete capacity-summary example
+
+This is cluster `b`'s report in the thesis example, with one destination of spare capacity `30`. Cluster `a` separately reports overflow `60`; cluster `c` separately reports spare total `48`. The root computes aggregates itself. Identifiers and timestamps illustrate the wire format.
+
+```json
+{
+  "schema_version": 1,
+  "producer_id": "cluster-b",
+  "producer_epoch": "cluster-b-boot-1",
+  "sequence": 10,
+  "window_start": "2026-11-25T09:00:00Z",
+  "window_end": "2026-11-25T09:00:05Z",
+  "duration_seconds": 5,
+  "cluster_id": "cluster-b",
+  "service_key": "campus.default.parking.default",
+  "local_plan_ref": "cluster-b-plan-7",
+  "overflow_rps": 0,
+  "instances": [
+    {
+      "instance_number": 3,
+      "host_id": "worker-b1",
+      "deployment_revision": "deployment-b1-1",
+      "ready": true,
+      "capacity_valid": true,
+      "spare_rps": 30
+    }
+  ]
+}
+```
+
+### Complete root-decision example
+
+This decision combines the three separate summaries. Both cluster shares and conditional instance shares are supplied in one version.
+
+```json
+{
+  "schema_version": 1,
+  "producer_id": "root-network-manager",
+  "producer_epoch": "root-boot-1",
+  "sequence": 42,
+  "service_key": "campus.default.parking.default",
+  "valid_until": "2026-11-25T09:00:20Z",
+  "mode": "normal",
+  "basis_reports": [
+    {
+      "cluster_id": "cluster-a",
+      "producer_epoch": "cluster-a-boot-1",
+      "sequence": 10,
+      "local_plan_ref": "cluster-a-plan-7"
+    },
+    {
+      "cluster_id": "cluster-b",
+      "producer_epoch": "cluster-b-boot-1",
+      "sequence": 10,
+      "local_plan_ref": "cluster-b-plan-7"
+    },
+    {
+      "cluster_id": "cluster-c",
+      "producer_epoch": "cluster-c-boot-1",
+      "sequence": 10,
+      "local_plan_ref": "cluster-c-plan-7"
+    }
+  ],
+  "clusters": [
+    {
+      "cluster_id": "cluster-b",
+      "cluster_weight": 0.38461538461538447,
+      "instances": [
+        {
+          "instance_number": 3,
+          "host_id": "worker-b1",
+          "deployment_revision": "deployment-b1-1",
+          "conditional_weight": 1.0
+        }
+      ]
+    },
+    {
+      "cluster_id": "cluster-c",
+      "cluster_weight": 0.6153846153846152,
+      "instances": [
+        {
+          "instance_number": 4,
+          "host_id": "worker-c1",
+          "deployment_revision": "deployment-c1-1",
+          "conditional_weight": 0.6457510335432812
+        },
+        {
+          "instance_number": 5,
+          "host_id": "worker-c2",
+          "deployment_revision": "deployment-c2-1",
+          "conditional_weight": 0.3542489664567192
+        }
+      ]
+    }
+  ]
+}
+```
+
+For `no_overflow` or `no_receiver`, `clusters` is empty and the mode determines its meaning. In temporary overload, the same fields carry the temporary shares from the corresponding equations; do not interpret them as a normal-capacity guarantee.
+
+### Complete final-policy example
+
+This is the `halo` object attached to the source cluster's RR entry. It contains only source `A1`'s row here; other source rows are separate. Full precision is retained.
+
+```json
+{
+  "schema_version": 1,
+  "service_key": "campus.default.parking.default",
+  "producer_id": "cluster-a",
+  "producer_epoch": "cluster-a-boot-1",
+  "sequence": 11,
+  "valid_until": "2026-11-25T09:00:20Z",
+  "local_plan_ref": "cluster-a-plan-7",
+  "root_decision_ref": {
+    "producer_id": "root-network-manager",
+    "producer_epoch": "root-boot-1",
+    "sequence": 42
+  },
+  "rows": [
+    {
+      "source_key": "worker-a1",
+      "state": "ready",
+      "destinations": [
+        {
+          "cluster_id": "cluster-a",
+          "instance_number": 1,
+          "host_id": "worker-a1",
+          "deployment_revision": "deployment-a1-1",
+          "weight": 0.44530116643408263
+        },
+        {
+          "cluster_id": "cluster-a",
+          "instance_number": 2,
+          "host_id": "worker-a2",
+          "deployment_revision": "deployment-a2-1",
+          "weight": 0.26058118650709383
+        },
+        {
+          "cluster_id": "cluster-b",
+          "instance_number": 3,
+          "host_id": "worker-b1",
+          "deployment_revision": "deployment-b1-1",
+          "weight": 0.1131221719457013
+        },
+        {
+          "cluster_id": "cluster-c",
+          "instance_number": 4,
+          "host_id": "worker-c1",
+          "deployment_revision": "deployment-c1-1",
+          "weight": 0.11687801512095582
+        },
+        {
+          "cluster_id": "cluster-c",
+          "instance_number": 5,
+          "host_id": "worker-c2",
+          "deployment_revision": "deployment-c2-1",
+          "weight": 0.06411745999216634
+        }
+      ]
+    }
+  ]
+}
+```
+
+A `ready` row must have at least one eligible positive destination and a unit sum within tolerance. An explicit `unavailable` row has an empty `destinations` list and makes `Pick` fail; it is not a malformed zero-sum ready row. A missing source row also fails closed.
+
+Validate identities against the matching route snapshot before installation. In this example, the local total is `12/17`, the foreign total is `5/17`, and the complete row sums to one. Publish another row for a different source rather than reusing this row merely because the service is the same.
+
 ## Required implementation acceptance checks
 
 | Area | Expected result |
 |---|---|
 | Capacity | Matching CPU/completion windows; zero/reset handling; allocation changes; all senders counted; explicit missing data |
 | Queue/failure | Total arrival rate; waiting separate from in-service; completed-outcome denominator; timeout/retry semantics |
+| Incomplete attribution | Whole-source completions reconcile even with partial `outcomes`; invalid path coverage does not create a fresh failure ratio. |
 | Local solve | Correct derivatives and boundary conditions, rate sum, shared limits, source-order effects, full-precision thesis replay |
 | Normal root | Multiple overflow sources; combined foreign rate per instance within $S$; overflowing clusters excluded as receivers |
 | Temporary root | $O>V$, $V=0$ with receivers, co-located instances, and no receiver |
@@ -211,3 +444,21 @@ Install this checkout's NetManager binary. Image selection, root port, and NodeE
 Existing [routeRefresh](../node-net-manager/proxy/routeRefresh_test.go), [flowCacheFastPath](../node-net-manager/proxy/flowCacheFastPath_test.go), [resolver](../node-net-manager/resolver/resolve_test.go), and [table](../node-net-manager/TableEntryCache/Table_test.go) tests are regression points. Future HALO class tests are also required; these documents do not claim they have run.
 
 Latency reduction requires separate empirical evaluation. Row convexity, fixed-plan capacity compliance, and user-visible latency are distinct claims.
+
+## Exact LaTeX references
+
+Section names below are English translations of the bundled headings. Labels are exact identifiers; source-line links identify the corresponding section in this snapshot. A parent section label is used where a subsection has no separate label. Wire formats, class paths, and startup adapters are repository-specific engineering choices.
+
+| Subject in this document | Exact bundled section | Source labels |
+|---|---|---|
+| Input counters and path observations | [Demand, capacity, and observed load](latex-reference/system-model.tex#L33) (system-model.tex:33) | `eq:source-demand` |
+| Input counters and path observations | [Path, failure, and queue observations](latex-reference/system-model.tex#L53) (system-model.tex:53) | `eq:ping-mean`, `eq:failure-observation` |
+| CPU input contract | [Linear capacity estimation from CPU consumption](latex-reference/method-cluster.tex#L8) (method-cluster.tex:8) | `eq:container-utilization`, `eq:cpu-linear-capacity` |
+| Destination and queue input contract | [Request counts from all sources](latex-reference/method-cluster.tex#L33) (method-cluster.tex:33) | `eq:all-source-observation` |
+| Destination and queue input contract | [Fixed path cost and container queue observation](latex-reference/method-cluster.tex#L92) (method-cluster.tex:92) | `eq:queue-measurement`, `eq:queue-residual` |
+| Solver acceptance conditions | [Lagrange solution and equation system](latex-reference/method-cluster.tex#L224) (method-cluster.tex:224) | `eq:optimality-conditions`, `eq:final-weights` |
+| Capacity-summary contract | [Reporting spare capacity of each instance](latex-reference/method-root.tex#L6) (method-root.tex:6) | `tab:root-message`, `eq:root-available` |
+| Root decision normal/temporary modes | [Shares of receiving clusters](latex-reference/method-root.tex#L36) (method-root.tex:36) | `eq:receiver-set`, `eq:root-normal-weights` |
+| Root decision normal/temporary modes | [Insufficient receiver capacity](latex-reference/method-root.tex#L80) (method-root.tex:80) | `eq:root-temporary-instance` |
+| Compatible policy composition | [Constructing the final table for each source](latex-reference/method-integration.tex#L43) (method-integration.tex:43) | `eq:integrated-final`, `eq:final-normalization` |
+| WRR and versioned installation | [WRR and event-driven updates](latex-reference/method-integration.tex#L96) (method-integration.tex:96) | `eq:wrr` |

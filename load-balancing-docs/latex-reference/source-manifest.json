@@ -1,0 +1,170 @@
+{
+  "snapshot_date": "2026-11-25",
+  "source_revision": "Latest working sources matching AUTthesis-revised-v11.pdf",
+  "scope": "Base-cost algorithm-only thesis draft; other chapters intentionally have empty headings.",
+  "files": {
+    "acknowledgement.tex": {
+      "sha256_original": "acfe46cfe8234e60648970aa1b36060a249583f774c6d346e6abf0d086ba59b5",
+      "bytes": 308,
+      "sha256_lf": "7a9d8999f1f312c6b30400837a823e05a5676588b6490cc88efbbc831a22a1da"
+    },
+    "appendix1.tex": {
+      "sha256_original": "2541960370f5af309b6d987b6245e601b5c198f2e26c15a7e6af117a8af4e690",
+      "bytes": 295,
+      "sha256_lf": "40ed7edc0ca9bc88f8b8d84399f7792c4a65d5f366c0c99e798a462f0082f117"
+    },
+    "AUTthesis.cls": {
+      "sha256_original": "abd2f0b90f4ea39dded3814c3ba438f114db8a2aec72c738cb59d7d8bc4d63e0",
+      "bytes": 9308,
+      "sha256_lf": "c7162dc106784592c1132b720c2ca1aea2136ace32e4ddd40d5cc09d4728afa5"
+    },
+    "AUTthesis.pdf": {
+      "sha256_original": "2c0aa3d7ffd692c516943f481d8916dcde51bd0c9de7f2a99e1ab115e791e725",
+      "bytes": 601310
+    },
+    "AUTthesis.tex": {
+      "sha256_original": "1195dbc0db71c8b9ed69874fc2c2a83629f45d45184e46af07544a9e9dd32b67",
+      "bytes": 829,
+      "sha256_lf": "a4ac6b63a4c2fd6e1153507cc0faf38425ee569375a3dcc7c824115333c3584f"
+    },
+    "besm.jpg": {
+      "sha256_original": "1d5ddf6de8eb020a85b40fc116643c9bfa2a86ff0999e28c367a3baa6025b272",
+      "bytes": 21507
+    },
+    "build_thesis.py": {
+      "sha256_original": "58f270eacee660eefb3af57a18400c4c391a7b82b53b0c2cd810a1bbf41db9ba",
+      "bytes": 3411,
+      "sha256_lf": "58f270eacee660eefb3af57a18400c4c391a7b82b53b0c2cd810a1bbf41db9ba"
+    },
+    "Chant.tex": {
+      "sha256_original": "a44e48c3991f9457b83ac3f0063adef8cc1729546302cb5b08ec899bca43d87f",
+      "bytes": 92,
+      "sha256_lf": "7fcedd3b0b3c6e392c6aa8ef6811a92446a2044cee2a298c6936a65ffcc00b23"
+    },
+    "chapter1.tex": {
+      "sha256_original": "015d685be3d22a4c7146912609d5c8fb453332c3524bac2f9ef77631e8fa1ad4",
+      "bytes": 283,
+      "sha256_lf": "ec4f6c727621c2bc043f2f3a8a4499ac5551d19490c688c54b19cd86a2e410ac"
+    },
+    "chapter2.tex": {
+      "sha256_original": "7c0a6c14690d25cf6efb8d0a802de6d93f2b716f7fe33e6282de661dbc8ab78d",
+      "bytes": 820,
+      "sha256_lf": "017d05e5bdd09d44af195f7fa8f491ff0370bbf0b4fa456198f0345d5b222d35"
+    },
+    "chapter3.tex": {
+      "sha256_original": "9d54583397531504406e07cc45631cc4057e80787d4cd39a778052a88f082788",
+      "bytes": 2608,
+      "sha256_lf": "2b516fba7b7d26671e786aa923cf41babe11246f3a21ebc57204bb56de6916eb"
+    },
+    "chapter4.tex": {
+      "sha256_original": "f1964ce4d0b923df1b00096749eefe0d235e2874ae5f5adb9e94bdc8fa72ddb0",
+      "bytes": 481,
+      "sha256_lf": "edc5c6eea4e1fb32ce92e4ffa6e136c30c676fcf750ebd4c8bcd4eb8d5c52844"
+    },
+    "chapter5.tex": {
+      "sha256_original": "93b0c6afc4c1ff1385f5a7f8fe4993fdb2282ca596364ccec88bd4287993db4f",
+      "bytes": 246,
+      "sha256_lf": "63c9da552fd764ede8b8d94c1ce2e5e2806497c3bd9b1b7109cfff2335a426e2"
+    },
+    "commands.tex": {
+      "sha256_original": "803a0ff52e6f62203bd068c8bdda623ea5513c9421dbd0c6772f76915dd572c7",
+      "bytes": 11098,
+      "sha256_lf": "17b54d8e94806e82763548b869db57d97d327a1fdf96b25ed4342dafee3c3c80"
+    },
+    "dicen2fa.tex": {
+      "sha256_original": "dd52cc43bfb47d0533a4d8c49d4bfaab33c569a7f2c217aa331324d8126ffec5",
+      "bytes": 186,
+      "sha256_lf": "bf7c4c05e36693f89ac58c61e747188765f4bb9001caadb7b3f1652fbac1a916"
+    },
+    "dicfa2en.tex": {
+      "sha256_original": "5cc540b95af6b13c7331e84f83227cfe0ae5888fb7531ce0a5feb68bde09371f",
+      "bytes": 185,
+      "sha256_lf": "bce5a24e99189bee575fe9150ebbd514de67a83e09becc3ea79909f137af84e4"
+    },
+    "en-abstract.tex": {
+      "sha256_original": "fb9aaf1c4babf16e385c72568057f3f46684b5153cc57456cd3358de728a1369",
+      "bytes": 152,
+      "sha256_lf": "0576f853933477543ef5deef75df7f88457b15c9348be6074a002063daccddb9"
+    },
+    "en-logo.png": {
+      "sha256_original": "c0772a549ac1e8b32eeeab699b08dd818478ef1c6885bbfa86b679cd0a5776b7",
+      "bytes": 19278
+    },
+    "en_title.tex": {
+      "sha256_original": "d9c3a2b0fed37fc56a3415b1f19422ac2bd4968302e69c49da0b9f03450a6653",
+      "bytes": 689,
+      "sha256_lf": "fe204740ea584889916cdb5d6d5a7fb0fae2b2e1d63c4027daa57d2a2a13b267"
+    },
+    "fa-logo.png": {
+      "sha256_original": "d364a220b96be469826680a378ef9f836881a022387e107808e4eddb4151e8b1",
+      "bytes": 19138
+    },
+    "fa_title.tex": {
+      "sha256_original": "f3db3b44866e59081b4b21a709b4557137e9682a493c247923e99e399bfa7acf",
+      "bytes": 1878,
+      "sha256_lf": "9c19247290f756a0019a236a8bc91964dced58f01b56dbdecaa592de794f3e5e"
+    },
+    "figures/visio/v10/01-system-model.pdf": {
+      "sha256_original": "664dd95183657b7de0f82004077a6983ce4e6393144a4fcd71f0ab00dde65954",
+      "bytes": 76696
+    },
+    "figures/visio/v10/02-algorithm-architecture.pdf": {
+      "sha256_original": "6a65cce04938870af3f7b5212b289e39e7a10c3a2f243fbb9a3b6d684ebf96f8",
+      "bytes": 146757
+    },
+    "figures/visio/v10/03-campus-example.pdf": {
+      "sha256_original": "39cbceb4b4de11261437bee0139c93b278ba5e2a556a2f9660547650045554c1",
+      "bytes": 119217
+    },
+    "list-of-symbols.tex": {
+      "sha256_original": "6b95e0af94e4da30dd8ea8fae42bef31f724ee85ea89f51df7479fabb2e8c6b9",
+      "bytes": 3294,
+      "sha256_lf": "bc436c255fe1aa55629d1dff2b7a0609ca6a1b71c68dd1e34198f07728e6c8ef"
+    },
+    "method-cluster.tex": {
+      "sha256_original": "18345857f73cd375d05bc49f241c34f6090eb8e9791ddb799ccdc768375972c8",
+      "bytes": 30848,
+      "sha256_lf": "6bc528d148f00e054889d5d0295d4aea631beb6a56507ad9a3ee67217a9c0ccd"
+    },
+    "method-example.tex": {
+      "sha256_original": "73fddd378176f8a3ac308c9743c44a0c563d981f73d94376f12f5aa6e3319592",
+      "bytes": 18301,
+      "sha256_lf": "af6e1d38de2950a6c13ae548cdd0f9bf8c4476af19d05631ec4511d9817718e0"
+    },
+    "method-integration.tex": {
+      "sha256_original": "54e4729c158b6b387fe2de850fa9c75327ec8197587e7c469bd8b184f7170d8f",
+      "bytes": 12555,
+      "sha256_lf": "b16399ee0cc744c8077da1120ce5ae06f579871f5f3ced38ac6851acac16253d"
+    },
+    "method-root.tex": {
+      "sha256_original": "c2565c6586c7b36138573f0998926ac68f1ff6dd8ab6999e6b4aff41f491d684",
+      "bytes": 9214,
+      "sha256_lf": "a1e748a98e4d2e9ed46af217b272d1430f391aad66e06305a30f5120a6785b99"
+    },
+    "references-section.tex": {
+      "sha256_original": "d2753246ea1f850b90c727ecf80e54553876383cc9c69ad9f596f60442dc1af3",
+      "bytes": 133,
+      "sha256_lf": "596a0f130cb74e6de49cd64709ecd8e4690949b193a78beebf81f8416749606d"
+    },
+    "references.bib": {
+      "sha256_original": "a028829e7014e468e5368edfa831b903daddc8667cb1c1e7e2b71ca77a044bea",
+      "bytes": 83,
+      "sha256_lf": "d0b7ea3a5499be3dec02076fe12efda6f2595dbc652e7a10eede56a824996dca"
+    },
+    "system-model.tex": {
+      "sha256_original": "9db02c48d0e878fa520d504110a7e908353c033cdadb84abd54a4298d5761707",
+      "bytes": 11625,
+      "sha256_lf": "7c9aeaa4d3682f1be0528e686aff6039aeba6dbb6d8496bf6fdfce785c92df42"
+    },
+    "taid.tex": {
+      "sha256_original": "26ff79e7d6f88adf753c17e0a4cb4e32a9244cc60ee8112a00a23be58955645d",
+      "bytes": 3471,
+      "sha256_lf": "a776f732cd4666b2f448d0c91878eeaec3a37f99d203d6bb01011b129d94b790"
+    },
+    "TOC-TOF-LOT.tex": {
+      "sha256_original": "6c320a311decbf9b04d8ffd9a793bed6f552491dd89cdc58b6be390ebc1ead3e",
+      "bytes": 862,
+      "sha256_lf": "31eadf314e879a3c5ffac28a4b1f51dccd373bdc4dcf334eb306ba0960f80733"
+    }
+  }
+}

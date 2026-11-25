@@ -1,0 +1,31 @@
+% !TEX program = xelatex
+% Algorithm-only draft. Other chapter headings intentionally have no body.
+\documentclass[oneside,msc,12pt]{AUTthesis}
+\input{commands}
+\begin{document}
+\baselineskip=.75cm
+\linespread{1.75}
+\input{fa_title}
+% The signed university approval forms must be inserted from the official file.
+% The original taid.tex is retained; its instructional placeholder pages are not printed.
+\input{Chant}
+\input{acknowledgement}
+\input{TOC-TOF-LOT}
+\input{list-of-symbols}
+\mainmatter
+\pagestyle{style1}
+\include{chapter1}
+\include{chapter2}
+\include{chapter3}
+\include{chapter4}
+\include{chapter5}
+\include{references-section}
+\cleardoublepage
+\pagestyle{style1}
+\appendix
+\include{appendix1}
+\include{dicfa2en}
+\include{dicen2fa}
+\include{en-abstract}
+\input{en_title}
+\end{document}

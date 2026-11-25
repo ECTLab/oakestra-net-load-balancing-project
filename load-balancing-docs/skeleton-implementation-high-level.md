@@ -95,3 +95,15 @@ An invalid HALO policy or absence of positive eligible destinations must not fal
 First verify contracts and pure calculations against the thesis example. Then integrate manager receive/publication paths and connect WRR at the flow-selection boundary. Real telemetry and ingress tests are prerequisites for declaring a complete implementation; success with synthetic class inputs alone is insufficient.
 
 The [low-level plan](skeleton-implementation-low-level.md) lists exact files and tests. NodeEngine, Compose, and worker installation belong to the [core project's plan](https://github.com/ECTLab/oakestra-load-balancing-project/blob/lb_develop/load-balancing-docs/skeleton-implementation-high-level.md).
+
+## Exact LaTeX references
+
+Section names below are English translations of the bundled headings. Labels are exact identifiers; source-line links identify the corresponding section in this snapshot. A parent section label is used where a subsection has no separate label. Wire formats, class paths, and startup adapters are repository-specific engineering choices.
+
+| Subject in this document | Exact bundled section | Source labels |
+|---|---|---|
+| Proposed architecture and ownership | [Proposed algorithm](latex-reference/chapter3.tex#L6) (chapter3.tex:6) | `sec:proposed-algorithm`, `fig:algorithm-architecture` |
+| Component/data boundaries | [Components, services, and data boundaries](latex-reference/system-model.tex#L19) (system-model.tex:19) | `sec:system-model` |
+| Root summary contents | [Reporting spare capacity of each instance](latex-reference/method-root.tex#L6) (method-root.tex:6) | `tab:root-message`, `eq:root-available` |
+| External decision publication | [Sending decisions to cluster managers](latex-reference/method-root.tex#L102) (method-root.tex:102) | `sec:root` |
+| Table installation and event-driven forwarding | [WRR and event-driven updates](latex-reference/method-integration.tex#L96) (method-integration.tex:96) | `eq:wrr` |

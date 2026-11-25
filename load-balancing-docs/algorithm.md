@@ -4,13 +4,13 @@ This document specifies the cluster network manager, root network manager, and e
 
 ## Sources and calculation order
 
-| Local-only thesis source | Covered details |
+| Bundled thesis source | Covered details |
 |---|---|
-| [local system-model.tex](<../../../../Dissertation/HALO/latex/قالب پایان نامه امیرکبیر/Latex template 2018/system-model.tex>) | Data boundaries, identities, observations, and counters |
-| [local method-cluster.tex](<../../../../Dissertation/HALO/latex/قالب پایان نامه امیرکبیر/Latex template 2018/method-cluster.tex>) | Linear capacity, queue correction, cost, convexity, Lagrange conditions, and parameter effects |
-| [local method-root.tex](<../../../../Dissertation/HALO/latex/قالب پایان نامه امیرکبیر/Latex template 2018/method-root.tex>) | Spare capacity, cluster/instance shares, and insufficient capacity |
-| [local method-integration.tex](<../../../../Dissertation/HALO/latex/قالب پایان نامه امیرکبیر/Latex template 2018/method-integration.tex>) | Local-first gate, integration, temporary behavior, and WRR |
-| [local method-example.tex](<../../../../Dissertation/HALO/latex/قالب پایان نامه امیرکبیر/Latex template 2018/method-example.tex>) | Six-source, five-destination worked example |
+| [system-model.tex](latex-reference/system-model.tex) | Data boundaries, identities, observations, and counters |
+| [method-cluster.tex](latex-reference/method-cluster.tex) | Linear capacity, queue correction, cost, convexity, Lagrange conditions, and parameter effects |
+| [method-root.tex](latex-reference/method-root.tex) | Spare capacity, cluster/instance shares, and insufficient capacity |
+| [method-integration.tex](latex-reference/method-integration.tex) | Local-first gate, integration, temporary behavior, and WRR |
+| [method-example.tex](latex-reference/method-example.tex) | Six-source, five-destination worked example |
 
 The calculation and execution sequence is:
 
@@ -60,6 +60,8 @@ Do not add sender totals to an already complete destination counter. Completed s
 | Failure ratio | $\hat f_{esi}=F_{esi}/(C_{esi}+F_{esi})$ over outcomes completed in that window on that path |
 | Open-attempt accounting | $O(t_{k+1})=O(t_k)+A_k-C_k-F_k$ |
 | Queue | Waiting requests separately from requests in service; enqueue-to-start duration measured at the destination |
+
+In open-attempt accounting, $C_k,F_k$ are whole-source terminal counts, mapped to `completed_succeeded` and `completed_failed`. The path-specific $C_{esi},F_{esi}$ used in the failure ratio are a separate breakdown. Unknown route attribution must not leave a completed attempt falsely open.
 
 With no completed outcomes, do not manufacture a new failure ratio. Retain the last valid value and its age, or a configured initial value marked unobserved. Missing ping is not zero: a valid initial probe or still-valid prior observation is required. The API response does not need an internal processing-time field.
 
@@ -277,3 +279,31 @@ Also verify the thesis variants: entirely local demand `(100,60,96)`; first-clus
 In global shortage, overflow is `186`, receiver spare capacities are `(15,24)`, and foreign rates become `(88.5,97.5)`. The only host in the second cluster reaches `163.5`; the two hosts in the third reach `(126.75,90.75)`. With no receiver, the first cluster's host rates are `(118,82)`.
 
 With failed `A2` and first-cluster demand `100`, foreign rate is `10`. In the local failure variant, increasing the path failure ratio changes its fixed cost from `0.001` to `0.101` seconds and reduces the `A1` destination weight from `0.639152` to `0.402205`. The complete derivation remains linked in the thesis example.
+
+## Exact LaTeX references
+
+Section names below are English translations of the bundled headings. Labels are exact identifiers; source-line links identify the corresponding section in this snapshot. A parent section label is used where a subsection has no separate label. Wire formats, class paths, and startup adapters are repository-specific engineering choices.
+
+| Subject in this document | Exact bundled section | Source labels |
+|---|---|---|
+| Demand and observations | [Demand, capacity, and observed load](latex-reference/system-model.tex#L33) (system-model.tex:33) | `eq:source-demand` |
+| Demand and observations | [Path, failure, and queue observations](latex-reference/system-model.tex#L53) (system-model.tex:53) | `eq:ping-mean`, `eq:failure-observation` |
+| Linear container capacity | [Linear capacity estimation from CPU consumption](latex-reference/method-cluster.tex#L8) (method-cluster.tex:8) | `eq:container-utilization`, `eq:processed-throughput`, `eq:cpu-linear-capacity` |
+| All-source destination counters | [Request counts from all sources](latex-reference/method-cluster.tex#L33) (method-cluster.tex:33) | `eq:all-source-observation` |
+| Margin and shared source limits | [Weights, safety margin, and shared destination limits](latex-reference/method-cluster.tex#L48) (method-cluster.tex:48) | `eq:global-cap`, `eq:remaining`, `eq:row-feasibility` |
+| Fixed path cost and queue correction | [Fixed path cost and container queue observation](latex-reference/method-cluster.tex#L92) (method-cluster.tex:92) | `eq:fixed-cost`, `eq:queue-measurement`, `eq:queue-residual` |
+| Weighted objective and rate substitution | [Cost function and allocation problem](latex-reference/method-cluster.tex#L143) (method-cluster.tex:143) | `eq:route-cost`, `eq:weighted-objective`, `eq:allocation-problem` |
+| Strict convexity | [Convexity of the objective](latex-reference/method-cluster.tex#L197) (method-cluster.tex:197) | `eq:first-derivative`, `eq:second-derivative`, `eq:third-derivative` |
+| Lagrange equations and constrained solution | [Lagrange solution and equation system](latex-reference/method-cluster.tex#L224) (method-cluster.tex:224) | `sec:lagrange-system`, `eq:lagrangian`, `eq:rate-system`, `eq:optimality-conditions` |
+| Parameter effects and reservation update | [Effects of parameters on weights](latex-reference/method-cluster.tex#L328) (method-cluster.tex:328) | `sec:parameter-effects` |
+| Parameter effects and reservation update | [Recording the new allocation and completing the local calculation](latex-reference/method-cluster.tex#L366) (method-cluster.tex:366) | `eq:planned-update`, `eq:aggregate-plan` |
+| Spare capacities and normal root shares | [Reporting spare capacity of each instance](latex-reference/method-root.tex#L6) (method-root.tex:6) | `eq:root-available` |
+| Spare capacities and normal root shares | [Shares of receiving clusters](latex-reference/method-root.tex#L36) (method-root.tex:36) | `eq:receiver-set`, `eq:root-normal-weights` |
+| Spare capacities and normal root shares | [Conditional external-instance shares](latex-reference/method-root.tex#L58) (method-root.tex:58) | `eq:foreign-conditional` |
+| Root overload shares | [Insufficient receiver capacity](latex-reference/method-root.tex#L80) (method-root.tex:80) | `eq:root-temporary-weights`, `eq:root-temporary-instance` |
+| Gate and final weights | [Determining the local share and overflow](latex-reference/method-integration.tex#L6) (method-integration.tex:6) | `eq:local-gate` |
+| Gate and final weights | [Constructing the final table for each source](latex-reference/method-integration.tex#L43) (method-integration.tex:43) | `eq:integrated-final`, `eq:all-sources-external-bound` |
+| Temporary local fallback | [Temporary behavior under total capacity shortage](latex-reference/method-integration.tex#L77) (method-integration.tex:77) | `sec:overload`, `eq:local-temporary` |
+| WRR and event-driven publication | [WRR and event-driven updates](latex-reference/method-integration.tex#L96) (method-integration.tex:96) | `eq:wrr` |
+| Example inputs, variants, and final matrix | [Inputs and calculation order](latex-reference/method-example.tex#L15) (method-example.tex:15) | `tab:example-input-hosts`, `tab:example-input-sources` |
+| Example inputs, variants, and final matrix | [Final weight matrix](latex-reference/method-example.tex#L190) (method-example.tex:190) | `eq:example-weight-matrix` |
